@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <link rel="stylesheet" href="/public/styles/chatroom_test.css">
+</head>
+
+<body>
+    <div id="chatroom_0" class="chatroom"></div>
+
+    <script>
+        (function () {
+            "use strict"
+            /**
+                Text to type.
+                Special characters:
+                "_": long pause,
+                "<": reserved,
+                ">": start new message,
+                "|": reserved.
+                Single quotes, used as apostrophy must be escaped: "\'".
+            **/
+            const chat = [
+                'This is a message._>',
+                'This is another message._>',
+                'Let\'s try is a longer message, which should eventually wrap into a multi-line paragraph..._Yay. It did.'
+            ];
+            const chatroom = document.getElementById('chatroom_0');
+
+            /* A little engine that typed */
+            let textHolder, textTarget, letter, li = 0, mi = 0, si = 0, typeSpeed = 25,
+                shortPause = 250,
+                longPause = 500,
+                tenseSilence = 2000;
+
+            function _get() {
+                if (li < textHolder.length) {
+                    setTimeout(
+                        function () {
+                            letter = document.createTextNode(textHolder[li]);
+                            _print(textTarget, letter);
+                        }, typeSpeed);
+                }
+            }
+
+            function _type() {
+                li = 0;
+                textTarget = document.getElementById('message_' + mi);
+                textHolder = chat[si].split('');
+                _get();
+            }
+
+            function _make() {
+                let message = document.createElement('div');
+                message.id = 'message_' + mi;
+                message.classList.add('message');
+                message.classList.add('new');
+                chatroom.appendChild(message);
+                setTimeout(function () {
+                    message.classList.remove('new');
+                    setTimeout(_type, 10);
+                }, 1100);
+            }
+
+            function _print(textTarget, letter) {
+                li++;
+                if (letter.nodeValue === ',' || letter.nodeValue === ';' || letter.nodeValue === ':') {
+                    setTimeout(_get, shortPause);
+                } else if (letter.nodeValue === '.' || letter.nodeValue === '!' || letter.nodeValue === '?') {
+                    setTimeout(_get, longPause);
+                } else if (letter.nodeValue === '_') {
+                    letter.nodeValue = '';
+                    setTimeout(_get, tenseSilence);
+                } else if (letter.nodeValue === '>') {
+                    /* type next message */
+                    mi++;
+                    si++;
+                    _make();
+                    letter.nodeValue = ''
+                } else {
+                    _get();
+                }
+                textTarget.appendChild(letter);
+            }
+            _make();
+        })()
+    </script>
+</body>
+
+</html>

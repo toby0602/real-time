@@ -1,0 +1,44 @@
+<!-- 這是WebSocket練習 終端機輸入指令node websocket.js 然後 http://localhost:8080/public/websocket.html 開啟網頁 -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebSocket 範例</title>
+</head>
+<body>
+  <input id="messageInput" type="text" placeholder="輸入訊息">
+  <button id="sendButton">發送</button>
+  <div id="messages"></div>
+
+  <script>
+    // 創建 WebSocket 連接
+    const socket = new WebSocket('ws://localhost:8082');
+
+    // 連接打開時的處理
+    socket.onopen = () => {
+      console.log('已連接到伺服器');
+    };
+
+    // 接收到訊息時的處理
+    socket.onmessage = (event) => {
+      const messages = document.getElementById('messages');
+      messages.innerHTML += `<p>${event.data}</p>`;
+    };
+
+    // 連接關閉時的處理
+    socket.onclose = () => {
+      console.log('已斷開與伺服器的連接');
+    };
+
+    // 發送訊息到伺服器
+    document.getElementById('sendButton').addEventListener('click', () => {
+      const input = document.getElementById('messageInput');
+      const message = input.value;
+      socket.send(message);
+      input.value = ''; // 清空輸入框
+    });
+  </script>
+</body>
+</html>
+

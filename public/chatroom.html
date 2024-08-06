@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html ng-app="chatApp">
+
+<head>
+    <title>WebSocket Chat Room</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <link rel="stylesheet" href="/styles/chatroom_test.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/css/all.min.css"
+        integrity="sha512-q3eWabyZPc1XTCmF+8/LuE1ozpg5xxn7iO89yfSOd5/oKvyqLngoNGsx8jq92Y8eXJ/IRxQbEC+FGSYxtk2oiw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+
+<body ng-controller="ChatController">
+    <div style="width: 400px; margin: auto;">
+        <div class="chatroom-header">
+            <div class="name">Larry</div>
+            <a href="javascript:;" class="btn-close"></a>
+        </div>
+        <div id="chatroom" class="chatroom"></div>
+        <!-- <input type="text" ng-model="username" autocomplete="off" placeholder="Enter your name" /> -->
+        <!-- <input type="text" ng-model="messageInput" autocomplete="off" placeholder="Type a message..." /> -->
+        <!-- <button ng-click="sendMessage()">Send</button> -->
+        <div class="chatroom-bottom" style="background-color: #fff;">
+            <div class="type">
+                <textarea name="" id="" cols="30" rows="1" ng-model="messageInput" placeholder="請輸入訊息..."></textarea>
+            </div>
+            <a href="javascript:;" class="tool-send" ng-click="sendMessage()"><i class="fas fa-paper-plane"></i></a>
+        </div>
+    </div>
+
+    <script>
+        angular.module('chatApp', []).controller('ChatController', ['$scope', function ($scope) {
+            const ws = new WebSocket('ws://localhost:8080');
+
+            $scope.messages = [];
+
+            ws.onopen = () => {
+                console.log('Connected to the server');
+            };
+
+            ws.onmessage = (event) => {
+                const parsedMessage = JSON.parse(event.data);
+                $scope.$apply(() => {
+                    $scope.messages.push(parsedMessage);
+                    // Call function to display message with typing effect
+                    displayMessageWithTypingEffect(parsedMessage.message);
+                });
+            };
+
+            ws.onclose = () => {
+                console.log('Disconnected from the server');
+            };
+
+            $scope.sendMessage = () => {
+                if ($scope.messageInput) {
+                    const message = {
+                        // username: $scope.username,
+                        message: $scope.messageInput
+                    };
+                    ws.send(JSON.stringify(message));
+                    $scope.messageInput = '';
+                } else {
+                    alert('Please enter a name and a message.');
+                }
+            };
+
+            // 當收到消息時，displayMessageWithTypingEffect 函數會創建一個新的消息元素並應用打字機效果。這個函數逐字顯示消息，模擬打字機的效果。
+            function displayMessageWithTypingEffect(message) {
+                const chatroom = document.getElementById('chatroom');
+                const messageElement = document.createElement('div');
+                messageElement.classList.add('message', 'new');
+                chatroom.appendChild(messageElement);
+
+                // Typewriter effect
+                let index = 0;
+                function type() {
+                    if (index < message.length) {
+                        messageElement.textContent += message[index];
+                        index++;
+                        setTimeout(type, 50); // Adjust typing speed
+                    }
+                }
+                type();
+            }
+        }]);
+    </script>
+</body>
+
+</html>
+
+<!-- 
+    ws:// 非加密 或 wss:// 加密
+
+    methods：
+    1. send - client發訊息給server
+    2. close - 關閉連線
+
+    event：
+    1. open - 連接建立時 
+    2. message - client收到server的訊息時
+    3. error - 通信發生錯誤時
+    4. close - 關閉連線時
+
+    console.log(ws) 會看到 readyState，它是連結 WS Server 的回應碼，共有四碼，代表意思為：
+    * 0 - 連接尚未建立
+    * 1 - 連接已建立，可以進行通信
+    * 2 - 連接正在進行關閉
+    * 3 - 連接已經關閉或者連接不能打開
+
+    而 bufferedAmount 代表 Client 端要傳給 Server 的訊息已被 send() 放入正在隊列中等待傳輸，但是還沒有發出。
+-->

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html ng-app="chatApp">
+<head>
+    <title>Chat App2</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/app.js"></script>
+    <script>
+        angular.module('chatApp', [])
+            .controller('ChatController', function($scope) {
+                var socket = io();
+
+                $scope.messages = [];
+                $scope.input = '';
+
+                $scope.sendMessage = function() {
+                    if ($scope.input) {
+                        socket.emit('chat message', $scope.input);
+                        $scope.input = '';
+                    }
+                };
+
+                socket.on('chat message', function(msg) {
+                    $scope.$apply(function() {
+                        $scope.messages.push(msg);
+                        setTimeout(function() {
+                            window.scrollTo(0, document.body.scrollHeight);
+                        }, 0);
+                    });
+                });
+            });
+    </script>
+</head>
+<body ng-controller="ChatController">
+    <ul>
+        <li ng-repeat="msg in messages">{{ msg }}</li>
+    </ul>
+    <form ng-submit="sendMessage()">
+        <input ng-model="input" autocomplete="off" />
+        <button type="submit">Send</button>
+    </form>
+</body>
+</html>
